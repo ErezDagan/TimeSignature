@@ -10,6 +10,14 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
+    server: {
+      deps: {
+        inline: ['zustand'],
+      },
+    },
+  },
+  resolve: {
+    dedupe: ['react', 'react-dom'],
   },
   server: {
     proxy: {

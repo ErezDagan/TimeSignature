@@ -5,6 +5,7 @@ import { MicInput } from './components/MicInput'
 import { TimeSignatureDisplay } from './components/TimeSignatureDisplay'
 import { BpmControl } from './components/BpmControl'
 import { MetronomeControls } from './components/MetronomeControls'
+import { BeatIndicator } from './components/BeatIndicator'
 
 function App() {
   const { inputMode, confidence, detectionError, isDetecting } = useAppStore()
@@ -66,6 +67,9 @@ function App() {
             <BpmControl />
             <MetronomeControls />
           </div>
+
+          {/* Beat Visuals */}
+          <BeatIndicator />
         </div>
       </main>
     </div>

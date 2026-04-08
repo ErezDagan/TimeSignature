@@ -4,6 +4,7 @@ import { FileUpload } from './components/FileUpload'
 import { MicInput } from './components/MicInput'
 import { TimeSignatureDisplay } from './components/TimeSignatureDisplay'
 import { BpmControl } from './components/BpmControl'
+import { MetronomeControls } from './components/MetronomeControls'
 
 function App() {
   const { inputMode, confidence, detectionError, isDetecting } = useAppStore()
@@ -63,6 +64,7 @@ function App() {
           >
             <TimeSignatureDisplay />
             <BpmControl />
+            <MetronomeControls />
           </div>
         </div>
       </main>

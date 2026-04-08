@@ -2,7 +2,7 @@ import os
 import tempfile
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, UploadFile, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -50,6 +50,17 @@ MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 MB
 @app.get("/health")
 async def health() -> dict:
     return {"status": "ok"}
+
+
+@app.websocket("/stream")
+async def websocket_stream(websocket: WebSocket) -> None:
+    """
+    WebSocket endpoint for real-time mic audio streaming.
+    Client sends binary PCM float32 chunks (22050 Hz mono).
+    Server responds with JSON beat/analysis events.
+    """
+    from stream_handler import handle_stream
+    await handle_stream(websocket)
 
 
 @app.post("/analyze", response_model=AnalysisResult)

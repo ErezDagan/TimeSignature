@@ -2,9 +2,11 @@ import { useAppStore } from './store/appStore'
 import { InputToggle } from './components/InputToggle'
 import { FileUpload } from './components/FileUpload'
 import { MicInput } from './components/MicInput'
+import { TimeSignatureDisplay } from './components/TimeSignatureDisplay'
+import { BpmControl } from './components/BpmControl'
 
 function App() {
-  const { inputMode, timeSignature, bpm, confidence, detectionError } = useAppStore()
+  const { inputMode, confidence, detectionError, isDetecting } = useAppStore()
 
   return (
     <div
@@ -23,37 +25,46 @@ function App() {
       </header>
 
       {/* Main */}
-      <main className="flex-1 flex flex-col items-center justify-center gap-8 px-8 py-12 max-w-2xl mx-auto w-full">
-        {/* Audio Input */}
-        <div className="w-full">
-          {inputMode === 'file' ? <FileUpload /> : <MicInput />}
+      <main className="flex-1 flex flex-col lg:flex-row gap-8 px-8 py-10 max-w-6xl mx-auto w-full">
+        {/* Left column: Audio input */}
+        <div className="flex-1 flex flex-col gap-6">
+          <div className="w-full">
+            {inputMode === 'file' ? <FileUpload /> : <MicInput />}
+          </div>
+
+          {detectionError && (
+            <p
+              className="text-sm px-4 py-3 rounded-lg text-center"
+              style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171' }}
+            >
+              {detectionError}
+            </p>
+          )}
+
+          {isDetecting && !detectionError && (
+            <div className="flex items-center justify-center gap-3 py-4">
+              <div
+                className="w-5 h-5 rounded-full border-2 border-t-transparent animate-spin"
+                style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }}
+              />
+              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                Detecting time signature…
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* Error */}
-        {detectionError && (
-          <p className="text-sm px-4 py-3 rounded-lg w-full text-center" style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171' }}>
-            {detectionError}
-          </p>
-        )}
-
-        {/* Detection result — basic display (replaced in STEP 4.1) */}
-        {confidence > 0 && (
+        {/* Right column: Time signature + metronome (STEP 4.2 will add metronome) */}
+        <div className="flex-1 flex flex-col items-center gap-8">
+          {/* Time Signature */}
           <div
-            className="text-center p-8 rounded-2xl w-full"
+            className="w-full flex flex-col items-center gap-6 p-8 rounded-2xl"
             style={{ background: 'var(--surface)' }}
           >
-            <div className="font-music" style={{ fontSize: '120px', lineHeight: 1, color: 'var(--accent)' }}>
-              {timeSignature.numerator}
-            </div>
-            <div style={{ borderTop: '4px solid var(--accent)', width: '80px', margin: '8px auto' }} />
-            <div className="font-music" style={{ fontSize: '120px', lineHeight: 1, color: 'var(--accent)' }}>
-              {timeSignature.denominator}
-            </div>
-            <p className="mt-4 text-lg" style={{ color: 'var(--text-muted)' }}>
-              {bpm} BPM · {Math.round(confidence * 100)}% confidence
-            </p>
+            <TimeSignatureDisplay />
+            <BpmControl />
           </div>
-        )}
+        </div>
       </main>
     </div>
   )

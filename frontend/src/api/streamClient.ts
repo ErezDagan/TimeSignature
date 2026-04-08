@@ -57,7 +57,7 @@ export class StreamClient {
 
   sendPcmChunk(float32Array: Float32Array): void {
     if (this.ws?.readyState === WebSocket.OPEN) {
-      this.ws.send(float32Array.buffer)
+      this.ws.send(float32Array.buffer as ArrayBuffer)
     }
   }
 

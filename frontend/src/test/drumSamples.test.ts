@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { loadDrumSamples, getSample, isSamplesLoaded, type DrumInstrument } from '../audio/drumSamples'
+import type { DrumInstrument } from '../audio/drumSamples'
 
 const INSTRUMENTS: DrumInstrument[] = ['kick', 'snare', 'hihat_c', 'hihat_o', 'ride', 'crash']
 

@@ -8,12 +8,11 @@ export interface AnalysisResult {
 }
 
 export class AnalysisError extends Error {
-  constructor(
-    message: string,
-    public readonly status?: number
-  ) {
+  readonly status: number | undefined
+  constructor(message: string, status?: number) {
     super(message)
     this.name = 'AnalysisError'
+    this.status = status
   }
 }
 

@@ -6,9 +6,10 @@ import { TimeSignatureDisplay } from './components/TimeSignatureDisplay'
 import { BpmControl } from './components/BpmControl'
 import { MetronomeControls } from './components/MetronomeControls'
 import { BeatIndicator } from './components/BeatIndicator'
+import { DrumSection } from './components/DrumSection'
 
 function App() {
-  const { inputMode, confidence, detectionError, isDetecting } = useAppStore()
+  const { inputMode, confidence: _confidence, detectionError, isDetecting } = useAppStore()
 
   return (
     <div
@@ -26,7 +27,7 @@ function App() {
         <InputToggle />
       </header>
 
-      {/* Main */}
+      {/* Main — two columns */}
       <main className="flex-1 flex flex-col lg:flex-row gap-8 px-8 py-10 max-w-6xl mx-auto w-full">
         {/* Left column: Audio input */}
         <div className="flex-1 flex flex-col gap-6">
@@ -56,9 +57,8 @@ function App() {
           )}
         </div>
 
-        {/* Right column: Time signature + metronome (STEP 4.2 will add metronome) */}
+        {/* Right column: Time signature + BPM + metronome + beat visuals */}
         <div className="flex-1 flex flex-col items-center gap-8">
-          {/* Time Signature */}
           <div
             className="w-full flex flex-col items-center gap-6 p-8 rounded-2xl"
             style={{ background: 'var(--surface)' }}
@@ -67,11 +67,14 @@ function App() {
             <BpmControl />
             <MetronomeControls />
           </div>
-
-          {/* Beat Visuals */}
           <BeatIndicator />
         </div>
       </main>
+
+      {/* Drum Section — full width below */}
+      <section className="px-8 pb-10 max-w-6xl mx-auto w-full">
+        <DrumSection />
+      </section>
     </div>
   )
 }

@@ -18,6 +18,7 @@ export interface AppState {
   // Playback
   isPlaying: boolean
   currentBeat: number
+  currentStep: number
 
   // Input
   inputMode: InputMode
@@ -27,6 +28,9 @@ export interface AppState {
   isDrumMuted: boolean
   isSongMuted: boolean
 
+  // Song audio buffer (decoded from uploaded file)
+  songBuffer: AudioBuffer | null
+
   // Actions
   setBpm: (bpm: number) => void
   setTimeSignature: (ts: TimeSignature) => void
@@ -35,10 +39,12 @@ export interface AppState {
   setDetectionError: (error: string | null) => void
   setIsPlaying: (playing: boolean) => void
   setCurrentBeat: (beat: number) => void
+  setCurrentStep: (step: number) => void
   setInputMode: (mode: InputMode) => void
   setSelectedPattern: (pattern: string) => void
   setIsDrumMuted: (muted: boolean) => void
   setIsSongMuted: (muted: boolean) => void
+  setSongBuffer: (buffer: AudioBuffer | null) => void
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -52,6 +58,7 @@ export const useAppStore = create<AppState>((set) => ({
   // Playback defaults
   isPlaying: false,
   currentBeat: 1,
+  currentStep: 0,
 
   // Input defaults
   inputMode: 'mic',
@@ -60,6 +67,7 @@ export const useAppStore = create<AppState>((set) => ({
   selectedPattern: 'Basic Rock',
   isDrumMuted: false,
   isSongMuted: false,
+  songBuffer: null,
 
   // Actions
   setBpm: (bpm) => set({ bpm }),
@@ -69,8 +77,10 @@ export const useAppStore = create<AppState>((set) => ({
   setDetectionError: (detectionError) => set({ detectionError }),
   setIsPlaying: (isPlaying) => set({ isPlaying }),
   setCurrentBeat: (currentBeat) => set({ currentBeat }),
+  setCurrentStep: (currentStep) => set({ currentStep }),
   setInputMode: (inputMode) => set({ inputMode }),
   setSelectedPattern: (selectedPattern) => set({ selectedPattern }),
   setIsDrumMuted: (isDrumMuted) => set({ isDrumMuted }),
   setIsSongMuted: (isSongMuted) => set({ isSongMuted }),
+  setSongBuffer: (songBuffer) => set({ songBuffer }),
 }))

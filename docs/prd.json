@@ -1,0 +1,192 @@
+{
+  "project": "TimeSignature",
+  "version": "1.0.0",
+  "date": "2026-04-08",
+  "description": "Web PWA that listens to audio, detects time signature via BeatNet backend, shows metronome with 3 visuals, and plays real-sample drum patterns",
+  "stories": [
+    {
+      "id": "US-1.1",
+      "branch": "scaffold/monorepo-init",
+      "title": "Monorepo Scaffold",
+      "description": "Initialize monorepo with Vite+React+TS frontend and FastAPI backend skeleton",
+      "acceptance_criteria": [
+        "npm run typecheck passes",
+        "npm run lint passes",
+        "docker compose up starts both services",
+        "GET /health returns 200"
+      ],
+      "passes": false,
+      "dependencies": []
+    },
+    {
+      "id": "US-2.1",
+      "branch": "backend/beatnet-detection",
+      "title": "Backend BeatNet Detection API",
+      "description": "POST /analyze accepts audio file, returns {bpm, numerator, denominator, confidence} using BeatNet",
+      "acceptance_criteria": [
+        "pytest test_analyze passes for 4/4 WAV",
+        "pytest test_analyze passes for 3/4 WAV",
+        "Response within 5s for 30s audio",
+        "Typecheck passes"
+      ],
+      "passes": false,
+      "dependencies": ["US-1.1"]
+    },
+    {
+      "id": "US-2.2",
+      "branch": "backend/websocket-stream",
+      "title": "Backend WebSocket Stream",
+      "description": "WebSocket /stream accepts chunked PCM audio, emits beat events in real time",
+      "acceptance_criteria": [
+        "pytest test_stream: mock client receives beat events",
+        "Disconnect handled gracefully"
+      ],
+      "passes": false,
+      "dependencies": ["US-2.1"]
+    },
+    {
+      "id": "US-3.1",
+      "branch": "frontend/store-api",
+      "title": "Zustand Store + API Client",
+      "description": "Define app state schema and typed fetch/WebSocket API clients",
+      "acceptance_criteria": [
+        "Store initializes with correct defaults",
+        "analyzeClient mock fetch updates store",
+        "Typecheck passes"
+      ],
+      "passes": false,
+      "dependencies": ["US-1.1"]
+    },
+    {
+      "id": "US-3.2",
+      "branch": "frontend/audio-input",
+      "title": "Audio Input Components",
+      "description": "Mic input via getUserMedia WebSocket stream + file upload drag-and-drop, both wired to backend",
+      "acceptance_criteria": [
+        "FileUpload triggers API and updates store",
+        "InputToggle switches mode",
+        "Verify in browser: upload WAV, see result"
+      ],
+      "passes": false,
+      "dependencies": ["US-3.1", "US-2.1", "US-2.2"]
+    },
+    {
+      "id": "US-4.1",
+      "branch": "frontend/timesig-display",
+      "title": "Time Signature Display + BPM Controls",
+      "description": "Large musical notation display, manual override dropdown, BPM ±buttons, tap tempo, confidence badge",
+      "acceptance_criteria": [
+        "Display renders from store",
+        "Dropdown updates store",
+        "Tap tempo computes BPM",
+        "Verify in browser"
+      ],
+      "passes": false,
+      "dependencies": ["US-3.1"]
+    },
+    {
+      "id": "US-4.2",
+      "branch": "frontend/metronome-engine",
+      "title": "Metronome Engine",
+      "description": "AudioContext look-ahead scheduler with dong (220Hz) on beat 1 and tick (880Hz) on other beats",
+      "acceptance_criteria": [
+        "100 beats: max jitter < 5ms",
+        "scheduleBeat called with correct params",
+        "Typecheck passes"
+      ],
+      "passes": false,
+      "dependencies": ["US-4.1"]
+    },
+    {
+      "id": "US-4.3",
+      "branch": "frontend/beat-visuals",
+      "title": "Beat Visual Indicators",
+      "description": "Pendulum (SVG), sweep bar (CSS scaleX), and large beat number — all three synchronized to metronome",
+      "acceptance_criteria": [
+        "BeatNumber renders correct number from store",
+        "Pendulum applies correct rotation",
+        "Verify in browser: all 3 sync at 120 BPM"
+      ],
+      "passes": false,
+      "dependencies": ["US-4.2"]
+    },
+    {
+      "id": "US-5.1",
+      "branch": "frontend/drum-samples",
+      "title": "Drum Sample Loader",
+      "description": "Fetch and decode 6 real WAV drum samples into AudioBuffers on app init",
+      "acceptance_criteria": [
+        "All 6 samples load without error",
+        "Decoded buffers are non-null AudioBuffer",
+        "Typecheck passes"
+      ],
+      "passes": false,
+      "dependencies": ["US-4.2"]
+    },
+    {
+      "id": "US-5.2",
+      "branch": "frontend/drum-sequencer",
+      "title": "Drum Sequencer + Pattern Data",
+      "description": "Step sequencer engine locked to metronome clock, with pattern definitions for 4/4, 3/4, 6/8, 5/4, 7/8",
+      "acceptance_criteria": [
+        "4/4 Basic Rock fires kick on steps 0,8",
+        "Pattern switch applies on next bar",
+        "Typecheck passes"
+      ],
+      "passes": false,
+      "dependencies": ["US-5.1"]
+    },
+    {
+      "id": "US-5.3",
+      "branch": "frontend/drum-ui",
+      "title": "Drum UI + Song Audio Toggle",
+      "description": "DrumPatternGrid, pattern tabs, drum mute, song audio GainNode toggle",
+      "acceptance_criteria": [
+        "Grid renders correct steps for 4/4 Basic Rock",
+        "Pattern tab click updates store and grid",
+        "Song toggle mutes/unmutes audio",
+        "Verify in browser: full playback"
+      ],
+      "passes": false,
+      "dependencies": ["US-5.2"]
+    },
+    {
+      "id": "US-6.1",
+      "branch": "pwa/setup",
+      "title": "PWA Configuration",
+      "description": "vite-plugin-pwa + Workbox: manifest, service worker, offline caching of all assets and drum samples",
+      "acceptance_criteria": [
+        "Lighthouse PWA score = 100",
+        "Assets load offline after first visit"
+      ],
+      "passes": false,
+      "dependencies": ["US-5.3"]
+    },
+    {
+      "id": "US-6.2",
+      "branch": "ui/polish",
+      "title": "UI Polish + Responsive Layout",
+      "description": "Full color palette, responsive CSS Grid layout, loading skeletons, error boundary, WCAG AA, keyboard nav",
+      "acceptance_criteria": [
+        "Lighthouse Performance > 90, Accessibility > 90",
+        "Desktop + tablet layouts verified in browser",
+        "Keyboard navigation works"
+      ],
+      "passes": false,
+      "dependencies": ["US-6.1"]
+    },
+    {
+      "id": "US-6.3",
+      "branch": "deploy/production",
+      "title": "Production Deployment",
+      "description": "Frontend to Vercel, backend Docker to Railway, VITE_API_URL configured",
+      "acceptance_criteria": [
+        "Production URL: upload WAV → detection result",
+        "Metronome fires correctly",
+        "Offline: app loads from cache"
+      ],
+      "passes": false,
+      "dependencies": ["US-6.2"]
+    }
+  ]
+}

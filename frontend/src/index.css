@@ -1,0 +1,31 @@
+@import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap');
+
+@import "tailwindcss";
+
+:root {
+  --bg: #0f0f13;
+  --surface: #1a1a24;
+  --border: #2d2d3a;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --accent: #f5a623;
+  --accent-dim: rgba(245, 166, 35, 0.15);
+  --active: #4ade80;
+  --inactive: #2d2d3a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-music {
+  font-family: 'IM Fell English', serif;
+}

@@ -4,10 +4,15 @@ import { useAppStore } from '../store/appStore'
 
 const CHUNK_SIZE = 4096 // samples per chunk
 
+type WsStatus = 'idle' | 'connecting' | 'connected' | 'error'
+
 export function MicInput() {
   const [isListening, setIsListening] = useState(false)
   const [bufferProgress, setBufferProgress] = useState(0)
   const [permissionDenied, setPermissionDenied] = useState(false)
+  const [audioLevel, setAudioLevel] = useState(0)
+  const [wsStatus, setWsStatus] = useState<WsStatus>('idle')
+  const smoothedLevelRef = useRef(0)
   const streamClientRef = useRef<StreamClient | null>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
   const processorRef = useRef<ScriptProcessorNode | null>(null)
@@ -30,6 +35,8 @@ export function MicInput() {
     streamClientRef.current = null
     setIsListening(false)
     setBufferProgress(0)
+    setAudioLevel(0)
+    setWsStatus('idle')
     setIsDetecting(false)
   }
 
@@ -37,6 +44,7 @@ export function MicInput() {
     setPermissionDenied(false)
     setDetectionError(null)
     setIsDetecting(true)
+    setWsStatus('connecting')
 
     let stream: MediaStream
     try {
@@ -44,6 +52,7 @@ export function MicInput() {
     } catch {
       setPermissionDenied(true)
       setIsDetecting(false)
+      setWsStatus('idle')
       return
     }
     streamRef.current = stream
@@ -60,9 +69,11 @@ export function MicInput() {
           setIsDetecting(false)
         } else if (event.type === 'error') {
           setDetectionError(event.message)
+          setWsStatus('error')
           setIsDetecting(false)
         }
       },
+      onOpen: () => setWsStatus('connected'),
       onClose: () => stopListening(),
     })
     client.connect()
@@ -78,6 +89,14 @@ export function MicInput() {
     processorRef.current = processor
     processor.onaudioprocess = (e) => {
       const float32 = e.inputBuffer.getChannelData(0)
+
+      // Compute RMS for level meter with exponential smoothing
+      let sumSq = 0
+      for (let i = 0; i < float32.length; i++) sumSq += float32[i] * float32[i]
+      const rms = Math.sqrt(sumSq / float32.length)
+      smoothedLevelRef.current = smoothedLevelRef.current * 0.75 + rms * 0.25
+      setAudioLevel(smoothedLevelRef.current)
+
       if (client.isConnected) {
         client.sendPcmChunk(float32)
       }
@@ -120,6 +139,31 @@ export function MicInput() {
                 <path d="M12 1a4 4 0 0 1 4 4v7a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm-2 18.94A9 9 0 0 0 21 12h-2a7 7 0 0 1-14 0H3a9 9 0 0 0 7 8.94V23h2v-3.06z" />
               </svg>
             </div>
+          </div>
+
+          {/* Audio level meter */}
+          <div className="w-full max-w-xs">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Input level</span>
+              <span className="text-xs" style={{ color: wsStatus === 'connected' ? '#4ade80' : wsStatus === 'error' ? '#f87171' : 'var(--text-muted)' }}>
+                {wsStatus === 'connecting' ? 'Connecting…' : wsStatus === 'connected' ? '● Connected' : wsStatus === 'error' ? '● Error' : ''}
+              </span>
+            </div>
+            <div className="h-2 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
+              <div
+                className="h-full rounded-full"
+                style={{
+                  width: `${Math.min(audioLevel * 800, 100)}%`,
+                  background: audioLevel > 0.05 ? 'var(--accent)' : '#6b7280',
+                  transition: 'width 80ms linear',
+                }}
+              />
+            </div>
+            {audioLevel < 0.002 && wsStatus === 'connected' && (
+              <p className="text-xs mt-1" style={{ color: '#f87171' }}>
+                No signal — check microphone
+              </p>
+            )}
           </div>
 
           {bufferProgress < 1 ? (

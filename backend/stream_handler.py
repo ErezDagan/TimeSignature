@@ -76,9 +76,14 @@ async def handle_stream(websocket: WebSocket) -> None:
 
             # Run BeatNet analysis on accumulated buffer
             audio_array = np.array(audio_buffer, dtype=np.float32)
-            result = await _analyze_buffer(audio_array)
+            result, error = await _analyze_buffer(audio_array)
 
-            if result:
+            if error:
+                await websocket.send_text(json.dumps({
+                    "type": "error",
+                    "message": f"Analysis failed: {error}",
+                }))
+            elif result:
                 last_result = result
                 last_analysis_sample = total_samples
                 await websocket.send_text(json.dumps({
@@ -101,15 +106,20 @@ async def handle_stream(websocket: WebSocket) -> None:
             pass
 
 
-async def _analyze_buffer(audio: np.ndarray) -> dict | None:
-    """Write buffer to temp file and run BeatNet analysis."""
+async def _analyze_buffer(audio: np.ndarray) -> tuple[Optional[dict], Optional[str]]:
+    """
+    Write buffer to temp file and run analysis.
+    Returns (result, error_message) — exactly one of which will be non-None.
+    """
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
         tmp_path = tmp.name
     try:
         sf.write(tmp_path, audio, SAMPLE_RATE)
         from analyzer import analyze_file
-        return analyze_file(tmp_path)
-    except Exception:
-        return None
+        result = analyze_file(tmp_path)
+        return result, None
+    except Exception as e:
+        return None, str(e)
     finally:
-        os.unlink(tmp_path)
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
